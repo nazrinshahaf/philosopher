@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/17 10:52:44 by nfernand          #+#    #+#             */
-/*   Updated: 2022/01/20 10:51:40 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/01/24 16:38:56 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,6 @@ typedef struct s_data t_data;
 typedef struct	s_philo
 {
 	int				id;
-	long			time_till_death;
 	long			time_since_meal;
 	int				right_fork_id;
 	int				left_fork_id;

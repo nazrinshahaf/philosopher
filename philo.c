@@ -6,24 +6,28 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/17 10:51:33 by nfernand          #+#    #+#             */
-/*   Updated: 2022/01/24 11:48:45 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/01/24 17:01:31 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./includes/philo.h"
 
-void	init_mutex(t_data *data)
+int	init_mutex(t_data *data)
 {
 	int	i;
 
 	i = 0;
-	pthread_mutex_init(&(data->print), NULL);
+	if (pthread_mutex_init(&(data->print), NULL))
+		return (1);
 	while (i < data->number_of_philos)
 	{
-		pthread_mutex_init(&(data->forks[i]), NULL);
-		pthread_mutex_init(&(data->philo[i].eating), NULL);
+		if (pthread_mutex_init(&(data->forks[i]), NULL))
+			return (1);
+		if (pthread_mutex_init(&(data->philo[i].eating), NULL))
+			return (1);
 		i++;
 	}
+	return (0);
 }
 
 void	init_philosophers(t_data *data)
@@ -34,7 +38,6 @@ void	init_philosophers(t_data *data)
 	while (i < data->number_of_philos)
 	{
 		data->philo[i].id = i;
-		data->philo[i].time_till_death = data->time_to_die;
 		data->philo[i].time_since_meal = 0;
 		data->philo[i].left_fork_id = i;
 		if (i == 0)
@@ -47,37 +50,45 @@ void	init_philosophers(t_data *data)
 	}
 }
 
-void	init_data(t_data *data, int argc, char **argv)
+int	init_data(t_data *data, int argc, char **argv)
 {
 	data->number_of_philos = ft_atoi(argv[1]);
 	data->time_to_die = ft_atoi(argv[2]);
 	data->time_to_eat = ft_atoi(argv[3]);
 	data->time_to_sleep = ft_atoi(argv[4]);
+	if (data->time_to_die <= 0 || data->number_of_philos <= 1
+			|| data->time_to_eat < 0 || data->time_to_sleep < 0)
+		return (1);
 	if (argc == 6)
+	{
 		data->no_of_eat = ft_atoi(argv[5]);
+		if (data->no_of_eat <= 0)
+			return (1);
+	}
 	else
 		data->no_of_eat = -1;
 	data->dead = 0;
 	init_philosophers(data);
-	init_mutex(data);
+	if (init_mutex(data))
+		return (2);
+	return (0);
 }
 
 void	print_rules(t_data *data)
 {
 	printf(GREEN "number of philosophers = %d\n", data->number_of_philos);
-	printf("time to die = %d\n", data->time_to_die);
-	printf("time to eat = %d\n", data->time_to_eat);
-	printf("time to sleep = %d\n", data->time_to_sleep);
+	printf("time to die = %d ms\n", data->time_to_die);
+	printf("time to eat = %d ms\n", data->time_to_eat);
+	printf("time to sleep = %d ms\n", data->time_to_sleep);
 	printf("number of eat = %d\n\n" RESET, data->no_of_eat);
 }
 
 void	print_philo(t_data *data, int philo_id)
 {
 	printf(MAGENTA "philosophers id = %d\n", data->philo[philo_id].id);
-	printf("time till death = %ld\n", data->philo[philo_id].time_till_death);
 	printf("time since meal = %ld\n", data->philo[philo_id].time_since_meal);
 	printf("right fork id = %d\n", data->philo[philo_id].right_fork_id);
-	printf("left fork id = %d\n\n", data->philo[philo_id].left_fork_id);
+	printf("left fork id = %d\n", data->philo[philo_id].left_fork_id);
 	printf("eat count = %d\n\n", data->philo[philo_id].eat_count);
 }
 
@@ -215,12 +226,12 @@ void	check_death(t_data *data)
 				printf("current time = 		%ld\n", current_time);
 				printf("time since last meal = 	%ld\n", (long)data->philo[i].time_since_meal);
 				printf("elapsed time  = 		  %ld\n", (long)(current_time - data->philo[i].time_since_meal));
-				printf("philo = %d IS DAED\n", data->philo[i].id);
+				printf("philo = %d IS DEAD\n", data->philo[i].id);
 				print_action(data, 5, data->philo[i].id);
 				data->dead = 1;
 			}
 			pthread_mutex_unlock(&(data->philo[i].eating));
-			usleep(100);
+			//custom_sleep(100);
 			i++;
 		}
 		if (data->dead == 1)
@@ -267,6 +278,7 @@ void	philosophers(t_data *data)
 int	main(int argc, char **argv)
 {
 	t_data	data;
+	int		rv;
 
 	if (argc > 6 || argc < 5)
 	{
@@ -275,7 +287,11 @@ int	main(int argc, char **argv)
 		printf(CYAN "[no_of_times_philos_must_eat]"GREEN"\"\n" RESET);
 		return (0);
 	}
-	init_data(&data, argc, argv);
+	rv = init_data(&data, argc, argv)
+	if (rv == 1)
+		return (printf("Error with initialising data\n"));
+	else if (rv == 2)
+		return (printf("Please enter valid values\n"));
 	print_rules(&data);
 	philosophers(&data);
 	return (0);
