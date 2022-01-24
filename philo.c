@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/17 10:51:33 by nfernand          #+#    #+#             */
-/*   Updated: 2022/01/20 11:40:11 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/01/24 11:48:45 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -228,6 +228,27 @@ void	check_death(t_data *data)
 	}
 }
 
+void	terminate_data(t_data *data)
+{
+	int	i;
+
+	i = 0;
+	while (i < data->number_of_philos)
+	{
+		pthread_join(data->philo[i].thread_id, NULL);
+		i++;
+	}
+	i = 0;
+	while (i < data->number_of_philos)
+	{
+		pthread_mutex_destroy(&(data->philo[i].eating));
+		pthread_mutex_destroy(&(data->forks[i]));
+		i++;
+	}
+	pthread_mutex_destroy(&(data->print));
+	pthread_exit(NULL);
+}
+
 void	philosophers(t_data *data)
 {
 	int	i;
@@ -239,14 +260,8 @@ void	philosophers(t_data *data)
 		data->philo[i].time_since_meal = get_time();
 		i++;
 	}
-	i = 0;
 	check_death(data);
-	while (i < data->number_of_philos)
-	{
-		pthread_join(data->philo[i].thread_id, NULL);
-		i++;
-	}
-	pthread_exit(NULL);
+	terminate_data(data);
 }
 
 int	main(int argc, char **argv)
