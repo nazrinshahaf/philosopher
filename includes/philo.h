@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/17 10:52:44 by nfernand          #+#    #+#             */
-/*   Updated: 2022/01/24 16:38:56 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/01/24 20:07:52 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ typedef struct	s_data
 	int				time_to_sleep;
 	int				no_of_eat;
 	int				dead;
+	long			start_time;
 	pthread_mutex_t	print;
 	pthread_mutex_t	forks[250];
 	t_philo			philo[250];

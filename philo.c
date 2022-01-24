@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/17 10:51:33 by nfernand          #+#    #+#             */
-/*   Updated: 2022/01/24 17:01:31 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/01/24 20:08:03 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,8 +56,9 @@ int	init_data(t_data *data, int argc, char **argv)
 	data->time_to_die = ft_atoi(argv[2]);
 	data->time_to_eat = ft_atoi(argv[3]);
 	data->time_to_sleep = ft_atoi(argv[4]);
-	if (data->time_to_die <= 0 || data->number_of_philos <= 1
-			|| data->time_to_eat < 0 || data->time_to_sleep < 0)
+	if (data->time_to_die <= 0 || data->number_of_philos <= 0
+			|| data->time_to_eat < 0 || data->time_to_sleep < 0
+			|| data->number_of_philos >= 200)
 		return (1);
 	if (argc == 6)
 	{
@@ -72,24 +73,6 @@ int	init_data(t_data *data, int argc, char **argv)
 	if (init_mutex(data))
 		return (2);
 	return (0);
-}
-
-void	print_rules(t_data *data)
-{
-	printf(GREEN "number of philosophers = %d\n", data->number_of_philos);
-	printf("time to die = %d ms\n", data->time_to_die);
-	printf("time to eat = %d ms\n", data->time_to_eat);
-	printf("time to sleep = %d ms\n", data->time_to_sleep);
-	printf("number of eat = %d\n\n" RESET, data->no_of_eat);
-}
-
-void	print_philo(t_data *data, int philo_id)
-{
-	printf(MAGENTA "philosophers id = %d\n", data->philo[philo_id].id);
-	printf("time since meal = %ld\n", data->philo[philo_id].time_since_meal);
-	printf("right fork id = %d\n", data->philo[philo_id].right_fork_id);
-	printf("left fork id = %d\n", data->philo[philo_id].left_fork_id);
-	printf("eat count = %d\n\n", data->philo[philo_id].eat_count);
 }
 
 long	get_time()
@@ -116,6 +99,28 @@ void	custom_sleep(int time)
 			break;
 		usleep(1);
 	}
+}
+
+void	print_rules(t_data *data)
+{
+	printf(GREEN "number of philosopher(s) = \t[%d]\n", data->number_of_philos);
+	printf("time to die = \t\t\t[%d ms]\n", data->time_to_die);
+	printf("time to eat = \t\t\t[%d ms]\n", data->time_to_eat);
+	printf("time to sleep = \t\t[%d ms]\n", data->time_to_sleep);
+	if (data->no_of_eat == -1)
+		printf("number of eat = \t\t[∞]\n");
+	else
+		printf("number of eat = \t\t[%d]\n", data->no_of_eat);
+	printf("start time = \t\t\t[%ld]\n\n" RESET, get_time());
+}
+
+void	print_philo(t_data *data, int philo_id)
+{
+	printf(MAGENTA "philosophers id = %d\n", data->philo[philo_id].id);
+	printf("time since meal = %ld\n", data->philo[philo_id].time_since_meal);
+	printf("right fork id = %d\n", data->philo[philo_id].right_fork_id);
+	printf("left fork id = %d\n", data->philo[philo_id].left_fork_id);
+	printf("eat count = %d\n\n", data->philo[philo_id].eat_count);
 }
 
 void	print_action(t_data *data, int action, int id)
@@ -154,11 +159,12 @@ void	handle_eat(t_philo *philo)
 		print_action(philo->data, 1, philo->id);
 	}
 	pthread_mutex_lock(&(philo->eating));
-	philo->time_since_meal = get_time();
 	print_action(philo->data, 2, philo->id);
+	philo->time_since_meal = get_time();
+	pthread_mutex_unlock(&(philo->eating));
 	custom_sleep(philo->data->time_to_eat);
 	philo->eat_count++;
-	pthread_mutex_unlock(&(philo->eating));
+
 	pthread_mutex_unlock(&(philo->data->forks[philo->left_fork_id]));
 	pthread_mutex_unlock(&(philo->data->forks[philo->right_fork_id]));
 }
@@ -187,13 +193,15 @@ void	*routine(void *void_philo)
 {
 	t_philo	*philo;
 	t_data	*d;
+	int		i;
 
+	i = 0;
 	philo = (t_philo *)void_philo;
 	d = (t_data *)philo->data;
 	// in the case of 3 philos all 3 might pick up a fork at the same time so i delay it || not sure if i need this
-	//if (philo->data->number_of_philos % 2 == 1 && philo->id % 2)
+	//if (d->number_of_philos % 2 == 1 && philo->id % 2)
 	//	custom_sleep(1);
-	//check for philo death or finish status
+	d->start_time = get_time();
 	while (philo->data->dead == 0)
 	{
 		handle_eat(philo);
@@ -201,6 +209,7 @@ void	*routine(void *void_philo)
 			break ;
 		handle_sleep(philo);
 		print_action(philo->data, 4, philo->id);
+		i++;
 	}
 	return (NULL);
 }
@@ -231,7 +240,7 @@ void	check_death(t_data *data)
 				data->dead = 1;
 			}
 			pthread_mutex_unlock(&(data->philo[i].eating));
-			//custom_sleep(100);
+			custom_sleep(100);
 			i++;
 		}
 		if (data->dead == 1)
@@ -275,6 +284,13 @@ void	philosophers(t_data *data)
 	terminate_data(data);
 }
 
+int	handle_exit(t_data *data, int err_num)
+{
+	if (err_num == 4)
+		print_action(data, 5, 0);
+	return (0);
+}
+
 int	main(int argc, char **argv)
 {
 	t_data	data;
@@ -287,12 +303,14 @@ int	main(int argc, char **argv)
 		printf(CYAN "[no_of_times_philos_must_eat]"GREEN"\"\n" RESET);
 		return (0);
 	}
-	rv = init_data(&data, argc, argv)
+	rv = init_data(&data, argc, argv);
 	if (rv == 1)
 		return (printf("Error with initialising data\n"));
 	else if (rv == 2)
 		return (printf("Please enter valid values\n"));
 	print_rules(&data);
+	if (data.number_of_philos == 1)
+		return (handle_exit(&data, 4));
 	philosophers(&data);
 	return (0);
 }
