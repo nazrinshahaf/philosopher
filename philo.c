@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/17 10:51:33 by nfernand          #+#    #+#             */
-/*   Updated: 2022/01/24 20:08:03 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/01/26 18:05:34 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ int	init_mutex(t_data *data)
 void	init_philosophers(t_data *data)
 {
 	int	i;
+	int	temp;
 
 	i = 0;
 	while (i < data->number_of_philos)
@@ -44,6 +45,12 @@ void	init_philosophers(t_data *data)
 			data->philo[i].right_fork_id = data->number_of_philos - 1;
 		else
 			data->philo[i].right_fork_id = i - 1;
+		if (i % 2 != 0)
+		{
+			temp = data->philo[i].left_fork_id;
+			data->philo[i].left_fork_id = data->philo[i].right_fork_id;
+			data->philo[i].right_fork_id = temp;
+		}
 		data->philo[i].eat_count = 0;
 		data->philo[i].data = data;
 		i++;
@@ -56,9 +63,10 @@ int	init_data(t_data *data, int argc, char **argv)
 	data->time_to_die = ft_atoi(argv[2]);
 	data->time_to_eat = ft_atoi(argv[3]);
 	data->time_to_sleep = ft_atoi(argv[4]);
+	data->started = 0;
 	if (data->time_to_die <= 0 || data->number_of_philos <= 0
 			|| data->time_to_eat < 0 || data->time_to_sleep < 0
-			|| data->number_of_philos >= 200)
+			|| data->number_of_philos >= 201)
 		return (1);
 	if (argc == 6)
 	{
@@ -97,7 +105,7 @@ void	custom_sleep(int time)
 		end = get_time();
 		if ((end - start) >= time)
 			break;
-		usleep(1);
+		usleep(500);
 	}
 }
 
@@ -193,14 +201,22 @@ void	*routine(void *void_philo)
 {
 	t_philo	*philo;
 	t_data	*d;
-	int		i;
 
-	i = 0;
 	philo = (t_philo *)void_philo;
 	d = (t_data *)philo->data;
-	// in the case of 3 philos all 3 might pick up a fork at the same time so i delay it || not sure if i need this
+
+	//printf(GREEN "[%d] entered %ld\n", philo->id, get_time());
+	while (d->started == 0)
+		;
+	//printf(RED "[%d] started %ld\n" RESET, philo->id, get_time());
+	/*
+	to prevent deadlock if there are odd amount of philos &&
+	this also prevents the even philo from thinking for too long and hogging the forks
+	*/	
+
 	//if (d->number_of_philos % 2 == 1 && philo->id % 2)
-	//	custom_sleep(1);
+	if (philo->id % 2)
+		custom_sleep(1);
 	d->start_time = get_time();
 	while (philo->data->dead == 0)
 	{
@@ -209,7 +225,6 @@ void	*routine(void *void_philo)
 			break ;
 		handle_sleep(philo);
 		print_action(philo->data, 4, philo->id);
-		i++;
 	}
 	return (NULL);
 }
@@ -225,10 +240,11 @@ void	check_death(t_data *data)
 		while (i < data->number_of_philos && data->dead == 0)
 		{
 			current_time = get_time();
-			pthread_mutex_lock(&(data->philo[i].eating));
-			if ((current_time - data->philo[i].time_since_meal) >= 
+			if ((current_time - data->philo[i].time_since_meal) >=
 					data->time_to_die && (data->philo[i].eat_count != data->no_of_eat))
 			{
+				pthread_mutex_lock(&(data->philo[i].eating));
+				print_action(data, 5, data->philo[i].id);
 				printf("all_eat = %d\n", all_eat(data));
 				printf("philo = %d\n", data->philo[i].id);
 				printf("eat count = %d\n", data->philo[i].eat_count);
@@ -236,15 +252,16 @@ void	check_death(t_data *data)
 				printf("time since last meal = 	%ld\n", (long)data->philo[i].time_since_meal);
 				printf("elapsed time  = 		  %ld\n", (long)(current_time - data->philo[i].time_since_meal));
 				printf("philo = %d IS DEAD\n", data->philo[i].id);
-				print_action(data, 5, data->philo[i].id);
 				data->dead = 1;
+				pthread_mutex_unlock(&(data->philo[i].eating));
 			}
-			pthread_mutex_unlock(&(data->philo[i].eating));
+			if (data->dead == 1 || all_eat(data) == 1)
+				return ;
 			custom_sleep(100);
 			i++;
 		}
-		if (data->dead == 1)
-			break ;
+		if (data->dead == 1 || all_eat(data) == 1)
+			return ;
 	}
 }
 
@@ -280,6 +297,7 @@ void	philosophers(t_data *data)
 		data->philo[i].time_since_meal = get_time();
 		i++;
 	}
+	data->started = 1;
 	check_death(data);
 	terminate_data(data);
 }

@@ -20,20 +20,17 @@ all: $(NAME)
 run: all
 	./philo 3 100 100 100 5
 
-3: all
-	./philo 3 100 100 100 5
+4live: all
+	./philo 4 410 200 200 5
 
-4: all
-	./philo 4 100 100 100 5
+4die: all
+	./philo 4 310 210 100
 
-5: all
-	./philo 5 100 100 100 5
+5live: all
+	./philo 5 800 200 200 
 
-n: all
-	./philo 5 800 200 200
-
-n2: all
-	./philo 4 410 200 200
+5livel: all
+	./philo 5 800 200 200 7
 
 clean:
 	$(RM) $(NAME)
