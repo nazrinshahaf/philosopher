@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/17 10:51:33 by nfernand          #+#    #+#             */
-/*   Updated: 2022/01/26 18:05:34 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/01/26 22:12:47 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -209,16 +209,16 @@ void	*routine(void *void_philo)
 	while (d->started == 0)
 		;
 	//printf(RED "[%d] started %ld\n" RESET, philo->id, get_time());
+
 	/*
 	to prevent deadlock if there are odd amount of philos &&
 	this also prevents the even philo from thinking for too long and hogging the forks
 	*/	
 
-	//if (d->number_of_philos % 2 == 1 && philo->id % 2)
 	if (philo->id % 2)
 		custom_sleep(1);
 	d->start_time = get_time();
-	while (philo->data->dead == 0)
+	while (d->dead == 0)
 	{
 		handle_eat(philo);
 		if (all_eat(philo->data) == 1 || philo->eat_count == d->no_of_eat)
@@ -254,14 +254,18 @@ void	check_death(t_data *data)
 				printf("philo = %d IS DEAD\n", data->philo[i].id);
 				data->dead = 1;
 				pthread_mutex_unlock(&(data->philo[i].eating));
+				system("leaks philo");
+				pthread_exit(NULL);
 			}
 			if (data->dead == 1 || all_eat(data) == 1)
-				return ;
-			custom_sleep(100);
+				break ;
+			//dont change the sleep for this
+			//custom_sleep(1);
+			usleep(10);
 			i++;
 		}
 		if (data->dead == 1 || all_eat(data) == 1)
-			return ;
+			break ;
 	}
 }
 
@@ -283,7 +287,6 @@ void	terminate_data(t_data *data)
 		i++;
 	}
 	pthread_mutex_destroy(&(data->print));
-	pthread_exit(NULL);
 }
 
 void	philosophers(t_data *data)
@@ -330,5 +333,6 @@ int	main(int argc, char **argv)
 	if (data.number_of_philos == 1)
 		return (handle_exit(&data, 4));
 	philosophers(&data);
+	system("leaks philo");
 	return (0);
 }
