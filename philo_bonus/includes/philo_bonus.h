@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/27 10:44:56 by nfernand          #+#    #+#             */
-/*   Updated: 2022/02/07 12:50:20 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/02/07 14:16:27 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <semaphore.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <sys/wait.h>
 
 #define RESET	"\033[0m"
 #define BLACK	"\033[30m"
