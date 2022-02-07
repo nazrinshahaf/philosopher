@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/27 10:43:28 by nfernand          #+#    #+#             */
-/*   Updated: 2022/01/28 16:30:33 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/02/07 12:59:45 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,8 @@ typedef struct	s_philo
 	int			right_fork_id;
 	int			left_fork_id;
 	int			eat_count;
-	pid_t		pid_id;
+	pid_t		ph_tid;
+	pthread_t	thread_id;
 	t_data		*data;
 }				t_philo;
 
@@ -34,6 +35,7 @@ typedef struct	s_data
 	int			no_of_eat;
 	int			dead;
 	long		start_time;
+	pid_t		prg_tid;
 	t_philo		philo[250];
 }				t_data;
 
@@ -128,6 +130,33 @@ int	init_data(t_data *data, int argc, char **argv)
 	return (0);
 }
 
+void	routine(t_philo *philo)
+{
+	printf("philo id = %d  ", philo->id);
+	printf("%ld\n", philo->time_since_meal);
+}
+
+void	philosophers(t_data *data)
+{
+	int	i;
+
+	i = 0;
+	while (i < data->number_of_philos)
+	{
+		data->philo[i].ph_tid = fork();
+		if (data->philo[i].ph_tid == 0)
+		{
+			//printf("child id = %d\n", data->philo[i].ph_tid);
+			routine(&(data->philo[i]));
+			data->philo[i].time_since_meal = get_time();
+			exit(0);
+		}
+		if (data->philo[i].ph_tid < 0)
+			printf("Error with forking\n");
+		i++;
+	}
+}
+
 int	main(int argc, char **argv)
 {
 	t_data	data;
@@ -140,4 +169,5 @@ int	main(int argc, char **argv)
 	}
 	init_data(&data, argc, argv);
 	print_rules(&data);
+	philosophers(&data);
 }

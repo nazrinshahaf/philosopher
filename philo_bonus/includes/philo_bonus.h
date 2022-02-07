@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/27 10:44:56 by nfernand          #+#    #+#             */
-/*   Updated: 2022/01/27 11:23:10 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/02/07 12:50:20 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <semaphore.h>
+#include <stdlib.h>
+#include <pthread.h>
 
 #define RESET	"\033[0m"
 #define BLACK	"\033[30m"
