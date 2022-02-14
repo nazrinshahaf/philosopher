@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/27 10:43:28 by nfernand          #+#    #+#             */
-/*   Updated: 2022/02/14 18:06:10 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/02/14 18:20:52 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -248,7 +248,9 @@ void	*eat_check(void *void_data)
 void	routine(t_philo *philo)
 {
 	pthread_t	death_tid;
+	t_data		*d;
 
+	d = (t_data *)philo->data;
 	sem_wait(philo->data->sync);
 	philo->time_since_meal = get_time();
 	//printf("%ld %d entered\n", philo->time_since_meal, philo->id);
@@ -259,7 +261,7 @@ void	routine(t_philo *philo)
 		custom_sleep(1);
 	while (1)
 	{
-		if (philo->eat_count >= philo->data->no_of_eat)
+		if (d->no_of_eat > 0 && philo->eat_count >= d->no_of_eat)
 			break ;
 		handle_eat(philo);
 		handle_sleep(philo);
