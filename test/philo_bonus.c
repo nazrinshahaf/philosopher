@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/27 10:43:28 by nfernand          #+#    #+#             */
-/*   Updated: 2022/02/14 17:43:06 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/02/14 18:06:10 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -211,6 +211,7 @@ void	*death_check(void *void_philo)
 			sem_post(philo->eating);
 			printf(RESET "===========================\n");
 			printf("philo = %d\n", philo->id);
+			printf("eat count = %d\n", philo->eat_count);
 			printf("current time = 		%ld\n", current_time);
 			printf("time since last meal = 	%ld\n", (long)philo->time_since_meal);
 			printf("elapsed time  = 		  %ld\n", (long)(current_time - philo->time_since_meal));
@@ -248,7 +249,7 @@ void	routine(t_philo *philo)
 {
 	pthread_t	death_tid;
 
-	//sem_wait(philo->data->sync);
+	sem_wait(philo->data->sync);
 	philo->time_since_meal = get_time();
 	//printf("%ld %d entered\n", philo->time_since_meal, philo->id);
 	if (pthread_create(&death_tid, NULL, &death_check, (void *)philo))
@@ -290,9 +291,9 @@ void	philosophers(t_data *data)
 			printf("Error with forking\n");
 		i++;
 	}
-	//i = 0;
-	//while (i++ < data->number_of_philos)
-	//	sem_post(data->sync);
+	i = 0;
+	while (i++ < data->number_of_philos)
+		sem_post(data->sync);
 	i = 0;
 	sem_wait(data->dead);
 	//printf(RED "%ld entered kill()\n" RESET, get_time());
