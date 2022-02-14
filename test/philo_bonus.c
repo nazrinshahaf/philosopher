@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/27 10:43:28 by nfernand          #+#    #+#             */
-/*   Updated: 2022/02/14 18:20:52 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/02/14 19:07:33 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ typedef struct	s_philo
 	int			id;
 	long		time_since_meal;
 	int			eat_count;
+	int			eat_lock;
 	pid_t		ph_pid;
 	sem_t		*eat_count_sem;
 	sem_t		*eating;
@@ -92,6 +93,7 @@ void	init_philosophers(t_data *data)
 		data->philo[i].time_since_meal = 0;
 		data->philo[i].data = data;
 		data->philo[i].eat_count = 0;
+		data->philo[i].eat_lock = 0;
 		i++;
 	}
 }
@@ -174,12 +176,14 @@ void	handle_eat(t_philo *philo)
 	print_action(philo->data, 1, philo->id);
 
 	sem_wait(philo->eating);
-	philo->time_since_meal = get_time();
+	philo->eat_lock = 1;
 	print_action(philo->data, 2, philo->id);
 	philo->eat_count++;
+	philo->time_since_meal = get_time();
 	custom_sleep(philo->data->time_to_eat);
+	philo->eat_lock = 0;
 	sem_post(philo->eating);
-	printf("%ld %d let go of fork\n", get_time(), philo->id);
+	//printf("%ld %d let go of fork\n", get_time(), philo->id);
 
 	sem_post(philo->eat_count_sem);
 	sem_post(philo->data->forks);
@@ -204,11 +208,11 @@ void	*death_check(void *void_philo)
 	{
 		current_time = get_time();
 		sem_wait(philo->eating);
-		if (current_time - philo->time_since_meal >= d->time_to_die)
+		if (current_time - philo->time_since_meal >= d->time_to_die && !philo->eat_lock)
 		{
 			print_action(philo->data, 5, philo->id);
-			sem_post(d->dead);
 			sem_post(philo->eating);
+			sem_post(d->dead);
 			printf(RESET "===========================\n");
 			printf("philo = %d\n", philo->id);
 			printf("eat count = %d\n", philo->eat_count);
@@ -220,8 +224,8 @@ void	*death_check(void *void_philo)
 			return (NULL);
 		}
 		sem_post(philo->eating);
-		//usleep(1000);
-		custom_sleep(10);
+		usleep(1000);
+		//custom_sleep(10);
 	}
 	return (NULL);
 }
@@ -258,7 +262,7 @@ void	routine(t_philo *philo)
 		return ;
 	pthread_detach(death_tid);
 	if (philo->id % 2)
-		custom_sleep(1);
+		custom_sleep(d->time_to_eat / 2);
 	while (1)
 	{
 		if (d->no_of_eat > 0 && philo->eat_count >= d->no_of_eat)
