@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/27 10:43:28 by nfernand          #+#    #+#             */
-/*   Updated: 2022/02/14 19:07:33 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/02/16 15:45:53 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,10 +19,10 @@ typedef struct	s_philo
 	int			id;
 	long		time_since_meal;
 	int			eat_count;
-	int			eat_lock;
+	int			is_eating;
 	pid_t		ph_pid;
 	sem_t		*eat_count_sem;
-	sem_t		*eating;
+	sem_t		*eating_lock;
 	t_data		*data;
 }				t_philo;
 
@@ -64,7 +64,7 @@ void	custom_sleep(int time)
 		end = get_time();
 		if ((end - start) >= time)
 			break;
-		usleep(500);
+		usleep(100);
 	}
 }
 
@@ -93,7 +93,7 @@ void	init_philosophers(t_data *data)
 		data->philo[i].time_since_meal = 0;
 		data->philo[i].data = data;
 		data->philo[i].eat_count = 0;
-		data->philo[i].eat_lock = 0;
+		data->philo[i].is_eating = 0;
 		i++;
 	}
 }
@@ -118,7 +118,7 @@ void	init_semaphores(t_data *data)
 	{
 		str = ft_strjoin("/eating_sem", ft_itoa(i));
 		sem_unlink(str);
-		data->philo[i].eating = sem_open(str, O_CREAT, S_IRWXU, 1);
+		data->philo[i].eating_lock = sem_open(str, O_CREAT, S_IRWXU, 1);
 		str = ft_strjoin("/eatcount_sem", ft_itoa(i));
 		sem_unlink(str);
 		data->philo[i].eat_count_sem = sem_open(str, O_CREAT, S_IRWXU, 0);
@@ -175,14 +175,14 @@ void	handle_eat(t_philo *philo)
 	sem_wait(philo->data->forks);
 	print_action(philo->data, 1, philo->id);
 
-	sem_wait(philo->eating);
-	philo->eat_lock = 1;
+	sem_wait(philo->eating_lock);
+	philo->is_eating = 1;
 	print_action(philo->data, 2, philo->id);
 	philo->eat_count++;
 	philo->time_since_meal = get_time();
 	custom_sleep(philo->data->time_to_eat);
-	philo->eat_lock = 0;
-	sem_post(philo->eating);
+	philo->is_eating = 0;
+	sem_post(philo->eating_lock);
 	//printf("%ld %d let go of fork\n", get_time(), philo->id);
 
 	sem_post(philo->eat_count_sem);
@@ -207,11 +207,11 @@ void	*death_check(void *void_philo)
 	while (1)
 	{
 		current_time = get_time();
-		sem_wait(philo->eating);
-		if (current_time - philo->time_since_meal >= d->time_to_die && !philo->eat_lock)
+		sem_wait(philo->eating_lock);
+		if (current_time - philo->time_since_meal >= d->time_to_die && !philo->is_eating)
 		{
 			print_action(philo->data, 5, philo->id);
-			sem_post(philo->eating);
+			sem_post(philo->eating_lock);
 			sem_post(d->dead);
 			printf(RESET "===========================\n");
 			printf("philo = %d\n", philo->id);
@@ -223,9 +223,9 @@ void	*death_check(void *void_philo)
 			printf(RESET"===========================\n"RESET);
 			return (NULL);
 		}
-		sem_post(philo->eating);
-		usleep(1000);
-		//custom_sleep(10);
+		sem_post(philo->eating_lock);
+		//usleep(1000);
+		custom_sleep(d->time_to_die / 100);
 	}
 	return (NULL);
 }
@@ -255,7 +255,7 @@ void	routine(t_philo *philo)
 	t_data		*d;
 
 	d = (t_data *)philo->data;
-	sem_wait(philo->data->sync);
+	sem_wait(d->sync);
 	philo->time_since_meal = get_time();
 	//printf("%ld %d entered\n", philo->time_since_meal, philo->id);
 	if (pthread_create(&death_tid, NULL, &death_check, (void *)philo))
