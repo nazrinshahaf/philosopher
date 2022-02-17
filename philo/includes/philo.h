@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/17 10:52:44 by nfernand          #+#    #+#             */
-/*   Updated: 2022/02/17 11:55:39 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/02/17 16:59:25 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 # include <string.h>
 # include <sys/time.h>
 # include <pthread.h>
+# include <limits.h>
 
 #define RESET	"\033[0m"
 #define BLACK	"\033[30m"

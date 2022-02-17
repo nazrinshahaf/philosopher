@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/17 10:51:33 by nfernand          #+#    #+#             */
-/*   Updated: 2022/02/17 15:16:08 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/02/17 17:52:45 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,26 +57,34 @@ void	init_philosophers(t_data *data)
 	}
 }
 
-int	init_data(t_data *data, int argc, char **argv)
+int	init_arg(t_data *data, int argc, char **argv)
 {
 	data->number_of_philos = ft_atoi(argv[1]);
 	data->time_to_die = ft_atoi(argv[2]);
 	data->time_to_eat = ft_atoi(argv[3]);
 	data->time_to_sleep = ft_atoi(argv[4]);
 	data->started = 0;
-	if (data->time_to_die <= 0 || data->number_of_philos <= 0
-			|| data->time_to_eat < 0 || data->time_to_sleep < 0
-			|| data->number_of_philos >= 201)
+	data->dead = 0;
+	if ((data->time_to_die < 0 || data->time_to_die > INT_MAX)
+			|| (data->number_of_philos <= 0 || data->number_of_philos > 200)
+			|| (data->time_to_eat < 0 || data->time_to_eat > INT_MAX)
+			|| (data->time_to_sleep <= 0 || data->time_to_sleep > INT_MAX))
 		return (1);
 	if (argc == 6)
 	{
 		data->no_of_eat = ft_atoi(argv[5]);
-		if (data->no_of_eat <= 0)
+		if (data->no_of_eat <= 0 || data->no_of_eat > INT_MAX)
 			return (1);
 	}
 	else
 		data->no_of_eat = -1;
-	data->dead = 0;
+	return (0);
+}
+
+int	init_data(t_data *data, int argc, char **argv)
+{
+	if (init_arg(data, argc, argv))
+		return (1);
 	init_philosophers(data);
 	if (init_mutex(data))
 		return (2);
@@ -152,29 +160,32 @@ void	print_action(t_data *data, int action, int id)
 
 void	handle_eat(t_philo *philo)
 {
-	if (philo->id % 2 == 0)
+	if (philo->data->number_of_philos > 1)
 	{
-		pthread_mutex_lock(&(philo->data->forks[philo->left_fork_id]));
-		print_action(philo->data, 1, philo->id);
-		pthread_mutex_lock(&(philo->data->forks[philo->right_fork_id]));
-		print_action(philo->data, 1, philo->id);
+		if (philo->id % 2 == 0)
+		{
+			pthread_mutex_lock(&(philo->data->forks[philo->left_fork_id]));
+			print_action(philo->data, 1, philo->id);
+			pthread_mutex_lock(&(philo->data->forks[philo->right_fork_id]));
+			print_action(philo->data, 1, philo->id);
+		}
+		else
+		{
+			pthread_mutex_lock(&(philo->data->forks[philo->right_fork_id]));
+			print_action(philo->data, 1, philo->id);
+			pthread_mutex_lock(&(philo->data->forks[philo->left_fork_id]));
+			print_action(philo->data, 1, philo->id);
+		}
+		pthread_mutex_lock(&(philo->eating));
+		print_action(philo->data, 2, philo->id);
+		philo->time_since_meal = get_time();
+		pthread_mutex_unlock(&(philo->eating));
+		custom_sleep(philo->data->time_to_eat);
+		philo->eat_count++;
+	
+		pthread_mutex_unlock(&(philo->data->forks[philo->left_fork_id]));
+		pthread_mutex_unlock(&(philo->data->forks[philo->right_fork_id]));
 	}
-	else
-	{
-		pthread_mutex_lock(&(philo->data->forks[philo->right_fork_id]));
-		print_action(philo->data, 1, philo->id);
-		pthread_mutex_lock(&(philo->data->forks[philo->left_fork_id]));
-		print_action(philo->data, 1, philo->id);
-	}
-	pthread_mutex_lock(&(philo->eating));
-	print_action(philo->data, 2, philo->id);
-	philo->time_since_meal = get_time();
-	pthread_mutex_unlock(&(philo->eating));
-	custom_sleep(philo->data->time_to_eat);
-	philo->eat_count++;
-
-	pthread_mutex_unlock(&(philo->data->forks[philo->left_fork_id]));
-	pthread_mutex_unlock(&(philo->data->forks[philo->right_fork_id]));
 }
 
 void	handle_sleep(t_philo *philo)
@@ -219,13 +230,13 @@ void	*routine(void *void_philo)
 		custom_sleep(d->time_to_eat / 2);
 	d->start_time = get_time();
 	philo->time_since_meal = get_time();
-	while (d->dead == 0)
+	while (d->dead == 0 && d->number_of_philos > 1)
 	{
 		handle_eat(philo);
-		if (all_eat(philo->data) == 1 || philo->eat_count == d->no_of_eat)
-			break ;
 		handle_sleep(philo);
 		print_action(philo->data, 4, philo->id);
+		if (all_eat(philo->data) == 1 || philo->eat_count == d->no_of_eat)
+			break ;
 	}
 	return (NULL);
 }
@@ -306,8 +317,15 @@ void	philosophers(t_data *data)
 
 int	handle_exit(t_data *data, int err_num)
 {
-	if (err_num == 4)
-		print_action(data, 5, 0);
+	if (err_num == 1)
+	{
+		printf(RED "Error with input values\n");
+		printf("[1 <= n < 200]\n[0 <= ttd <= INT_MAX]\n");
+		printf("[0 <= tte <= INT_MAX]\n[0 <= tts <= INT_MAX]\n");
+		printf("[0 <= eat_count <= INT_MAX]\n" RESET);
+	}
+	else if (err_num == 2)
+		printf(RED "Error with initialising mutex\n" RESET);
 	return (0);
 }
 
@@ -324,13 +342,9 @@ int	main(int argc, char **argv)
 		return (0);
 	}
 	rv = init_data(&data, argc, argv);
-	if (rv == 1)
-		return (printf("Error with initialising data\n"));
-	else if (rv == 2)
-		return (printf("Please enter valid values\n"));
+	if (rv)
+		return (handle_exit(&data, rv));
 	print_rules(&data);
-	if (data.number_of_philos == 1)
-		return (handle_exit(&data, 4));
 	philosophers(&data);
 	return (0);
 }
