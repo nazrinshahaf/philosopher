@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/27 10:43:28 by nfernand          #+#    #+#             */
-/*   Updated: 2022/02/16 15:45:53 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/02/17 11:07:53 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -304,7 +304,7 @@ void	philosophers(t_data *data)
 	sem_wait(data->dead);
 	//printf(RED "%ld entered kill()\n" RESET, get_time());
 	while (i < data->number_of_philos)
-		kill(data->philo[i++].ph_pid, SIGKILL);
+		kill(data->philo[i++].ph_pid, SIGTERM);
 		//waitpid(data->philo[i++].ph_pid, &status, 0);
 }
 

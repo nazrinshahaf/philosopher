@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/17 10:51:33 by nfernand          #+#    #+#             */
-/*   Updated: 2022/01/26 22:12:47 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/02/17 15:16:08 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -216,8 +216,9 @@ void	*routine(void *void_philo)
 	*/	
 
 	if (philo->id % 2)
-		custom_sleep(1);
+		custom_sleep(d->time_to_eat / 2);
 	d->start_time = get_time();
+	philo->time_since_meal = get_time();
 	while (d->dead == 0)
 	{
 		handle_eat(philo);
@@ -254,8 +255,6 @@ void	check_death(t_data *data)
 				printf("philo = %d IS DEAD\n", data->philo[i].id);
 				data->dead = 1;
 				pthread_mutex_unlock(&(data->philo[i].eating));
-				system("leaks philo");
-				pthread_exit(NULL);
 			}
 			if (data->dead == 1 || all_eat(data) == 1)
 				break ;
@@ -333,6 +332,5 @@ int	main(int argc, char **argv)
 	if (data.number_of_philos == 1)
 		return (handle_exit(&data, 4));
 	philosophers(&data);
-	system("leaks philo");
 	return (0);
 }
