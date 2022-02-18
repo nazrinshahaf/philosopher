@@ -6,18 +6,15 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/27 10:43:28 by nfernand          #+#    #+#             */
-/*   Updated: 2022/02/18 11:53:10 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/02/18 14:58:16 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./includes/philo_bonus.h"
 
-
 int	main(int argc, char **argv)
 {
 	t_data		data;
-	pthread_t	eat_tid;
-	int			i;
 
 	if (argc > 6 || argc < 5)
 	{
@@ -26,18 +23,13 @@ int	main(int argc, char **argv)
 		printf(CYAN "[no_of_times_philos_must_eat]"GREEN"\"\n" RESET);
 		return (0);
 	}
-	init_data(&data, argc, argv);
+	if (init_data(&data, argc, argv))
+		return (handle_error(&data, 1));
 	print_rules(&data);
-	if (data.no_of_eat > 0)
-	{
-		pthread_create(&eat_tid, NULL, &eat_check, (void *)&data);
-		pthread_detach(eat_tid);
-	}
-	philosophers(&data);
-	sem_wait(data.dead);
-	i = 0;
-	while (i < data.number_of_philos)
-		kill(data.philo[i++].ph_pid, SIGTERM);
+	create_eat_check_thread(&data);
+	if (philosophers(&data))
+		return (handle_error(&data, 2));
+	kill_philosophers(&data);
 	terminate_data(&data);
 	return (0);
 }

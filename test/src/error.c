@@ -1,43 +1,30 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   eat_check.c                                        :+:      :+:    :+:   */
+/*   error.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/02/18 11:10:58 by nfernand          #+#    #+#             */
-/*   Updated: 2022/02/18 14:59:40 by nfernand         ###   ########.fr       */
+/*   Created: 2022/02/18 14:47:45 by nfernand          #+#    #+#             */
+/*   Updated: 2022/02/18 14:56:56 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/philo_bonus.h"
 
-void	*eat_check(void *void_data)
+int	handle_error(t_data *data, int err_num)
 {
-	t_data	*d;
-	int		i;
-	int		j;
-
-	d = (t_data *)void_data;
-	i = 0;
-	while (i < d->no_of_eat)
+	if (err_num == 1)
 	{
-		j = 0;
-		while (j < d->number_of_philos)
-			sem_wait(d->philo[j++].eat_count_sem);
-		i++;
+		printf(RED "Error with input values\n");
+		printf("[1 <= n < 200]\n[0 <= ttd <= INT_MAX]\n");
+		printf("[0 <= tte <= INT_MAX]\n[0 <= tts <= INT_MAX]\n");
+		printf("[0 <= eat_count <= INT_MAX]\n" RESET);
 	}
-	sem_post(d->dead);
-	return (NULL);
-}
-
-void	create_eat_check_thread(t_data *data)
-{
-	pthread_t	eat_tid;
-
-	if (data->no_of_eat > 0)
+	else if (err_num == 2)
 	{
-		pthread_create(&eat_tid, NULL, &eat_check, (void *)data);
-		pthread_detach(eat_tid);
+		printf(RED "Error with forking\n" RESET);
+		terminate_data(data);
 	}
+	return (0);
 }

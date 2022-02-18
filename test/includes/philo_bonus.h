@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/27 10:44:56 by nfernand          #+#    #+#             */
-/*   Updated: 2022/02/18 12:12:00 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/02/18 14:59:29 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,22 +63,6 @@ typedef struct s_data
 	sem_t		*sync;
 }				t_data;
 
-// ----- ft_atoi.c -----
-
-int		ft_atoi(const char *str);
-
-// ----- ft_itoa.c -----
-
-char	*ft_itoa(int n);
-
-// ----- ft_strlen.c -----
-
-int		ft_strlen(const char *s);
-
-// ----- ft_strjoin.c -----
-
-char	*ft_strjoin(char const *s1, char const *s2);
-
 // ----- time_utils.c -----
 
 long	get_time(void);
@@ -90,8 +74,8 @@ void	print_rules(t_data *data);
 void	print_action(t_data *data, int action, int id);
 
 // ----- init_data.c -----
- 
-int	init_data(t_data *data, int argc, char **argv);
+
+int		init_data(t_data *data, int argc, char **argv);
 
 // ----- terminate_data.c -----
 
@@ -100,6 +84,7 @@ void	terminate_data(t_data *data);
 // ----- eat_check.c -----
 
 void	*eat_check(void *void_data);
+void	create_eat_check_thread(t_data *data);
 
 // ----- death_check.c -----
 
@@ -112,15 +97,20 @@ void	routine(t_philo *philo);
 // ----- philosophers.c -----
 
 int		philosophers(t_data *data);
+void	kill_philosophers(t_data *data);
 
+// ----- error.c -----
 
-// test
+int		handle_error(t_data *data, int err_num);
+
+// ----- libft -----
 
 void	ft_putnbr_fd(long n, int fd);
 void	ft_putstr_fd(char *s, int fd);
 void	ft_putchar_fd(char c, int fd);
-
-
-
+int		ft_atoi(const char *str);
+char	*ft_itoa(int n);
+int		ft_strlen(const char *s);
+char	*ft_strjoin(char const *s1, char const *s2);
 
 #endif
