@@ -2,7 +2,7 @@ NAME := philo_bonus
 
 CC := gcc
 CFLAGS := -Wall -Wextra -Werror
-TFLAGS := -lpthread
+TFLAGS := -lpthread 
 AR := ar rcs
 RM := rm -f
 
