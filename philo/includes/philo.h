@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/17 10:52:44 by nfernand          #+#    #+#             */
-/*   Updated: 2022/02/18 10:32:53 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/02/18 10:39:24 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,19 +21,19 @@
 # include <pthread.h>
 # include <limits.h>
 
-#define RESET	"\033[0m"
-#define BLACK	"\033[30m"
-#define RED		"\033[31m"
-#define GREEN	"\033[32m"
-#define YELLOW	"\033[33m"
-#define BLUE	"\033[34m"
-#define MAGENTA	"\033[35m"
-#define CYAN	"\033[36m"
-#define WHITE	"\033[37m"
+# define RESET	"\033[0m"
+# define BLACK	"\033[30m"
+# define RED		"\033[31m"
+# define GREEN	"\033[32m"
+# define YELLOW	"\033[33m"
+# define BLUE	"\033[34m"
+# define MAGENTA	"\033[35m"
+# define CYAN	"\033[36m"
+# define WHITE	"\033[37m"
 
-typedef struct s_data t_data;
+typedef struct s_data	t_data;
 
-typedef struct	s_philo
+typedef struct s_philo
 {
 	int				id;
 	long			time_since_meal;
@@ -45,7 +45,7 @@ typedef struct	s_philo
 	t_data			*data;
 }				t_philo;
 
-typedef struct	s_data
+typedef struct s_data
 {
 	int				number_of_philos;
 	int				time_to_die;
@@ -62,7 +62,7 @@ typedef struct	s_data
 
 // ----- ft_atoi.c -----
 
-int	ft_atoi(const char *str);
+int		ft_atoi(const char *str);
 
 // ----- print_utils.c -----
 
@@ -77,16 +77,15 @@ void	custom_sleep(int time);
 
 // ----- init.c ------
 
-int	init_data(t_data *data, int argc, char **argv);
+int		init_data(t_data *data, int argc, char **argv);
 
 // ----- init.c ------
 
-int	handle_error(t_data *data, int err_num);
+int		handle_error(t_data *data, int err_num);
 
 // ----- eat_check.c ----- 
 
-int	all_eat(t_data *data);
-
+int		all_eat(t_data *data);
 
 // ----- death_check.c ----- 
 
@@ -102,6 +101,6 @@ void	terminate_data(t_data *data);
 
 // ----- routine.c ----- 
 
-int	philosophers(t_data *data);
+int		philosophers(t_data *data);
 
 #endif
