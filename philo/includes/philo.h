@@ -6,7 +6,7 @@
 /*   By: nfernand <nfernand@student.42kl.edu.m      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/17 10:52:44 by nfernand          #+#    #+#             */
-/*   Updated: 2022/02/17 16:59:25 by nfernand         ###   ########.fr       */
+/*   Updated: 2022/02/18 10:32:53 by nfernand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,44 @@ typedef struct	s_data
 
 int	ft_atoi(const char *str);
 
+// ----- print_utils.c -----
 
+void	print_rules(t_data *data);
+void	print_philo(t_data *data, int philo_id);
+void	print_action(t_data *data, int action, int id);
+
+// ----- print_utils.c -----
+
+long	get_time(void);
+void	custom_sleep(int time);
+
+// ----- init.c ------
+
+int	init_data(t_data *data, int argc, char **argv);
+
+// ----- init.c ------
+
+int	handle_error(t_data *data, int err_num);
+
+// ----- eat_check.c ----- 
+
+int	all_eat(t_data *data);
+
+
+// ----- death_check.c ----- 
+
+void	check_death(t_data *data);
+
+// ----- routine.c ----- 
+
+void	*routine(void *void_philo);
+
+// ----- routine.c ----- 
+
+void	terminate_data(t_data *data);
+
+// ----- routine.c ----- 
+
+int	philosophers(t_data *data);
 
 #endif
